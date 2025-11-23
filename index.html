@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Travel Proposal Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ai: {
+                bg: '#0f172a', // Slate 900
+                card: '#1e293b', // Slate 800
+                accent: '#38bdf8', // Sky 400
+                secondary: '#818cf8', // Indigo 400
+                text: '#f8fafc', // Slate 50
+                muted: '#94a3b8', // Slate 400
+              },
+              corporate: {
+                blue: '#0c4a6e', // Sky 900 (Updated for premium feel)
+                accent: '#0ea5e9', // Sky 500
+                gold: '#d4af37',
+                light: '#f0f9ff'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              display: ['Montserrat', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+      body { font-family: 'Inter', sans-serif; }
+      h1, h2, h3, h4, h5, h6 { font-family: 'Montserrat', sans-serif; }
+      
+      /* Glassmorphism Utilities */
+      .glass {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(56, 189, 248, 0.1);
+      }
+
+      @media print {
+        @page {
+            margin: 0; /* Hides default browser header/footer/url */
+            size: auto;
+        }
+        body { 
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact; 
+            background: white; 
+            margin: 0;
+            padding: 0;
+        }
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        .page-break { page-break-after: always; }
+        .break-inside-avoid { break-inside: avoid; }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-ai-bg text-ai-text antialiased selection:bg-ai-accent selection:text-ai-bg">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
