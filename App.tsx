@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { ProposalPDF } from './ProposalPDF.tsx';
-import { AuthScreen } from './components/AuthComponents';
-import { FormInput, FormSelect, FormCheckbox, FileUploader, SectionHeader, Button, DateRangePicker } from './components/InputComponents';
+import { AuthScreen } from './AuthComponents';
+import { FormInput, FormSelect, FormCheckbox, FileUploader, SectionHeader, Button, DateRangePicker } from './InputComponents';
 import { ProposalData, HotelDetails, FlightDetails, FlightClass, TransportationDetails, VehicleType, CustomItem, ActivityDetails, Inclusions, CategoryMarkups, MarkupType, FlightLeg, User, UserRole, ProposalHistory, MarkupConfig, RoomType, HotelImage, ImageTag, MeetingDetails, DiningDetails, FlightQuote, Company } from './types';
-import { BedIcon, PlaneIcon, BusIcon, ActivityIcon, CustomIcon, PalmLogo, SaveIcon, EditIcon, TrashIcon, CopyIcon, HomeIcon, UserIcon, UsersIcon, LockIcon, UtensilsIcon, MeetingIcon, SITCLogo } from './components/Icons';
-import { getGlobalSettings, saveGlobalSettings, getUsers, createSubUser, createCompanyAdmin, deleteUser, validatePassword, changePassword, updateUser, getCompanies, saveCompany, updateCompany, deleteCompany, adminResetUserPassword, validatePhone } from './services/authService';
+import { BedIcon, PlaneIcon, BusIcon, ActivityIcon, CustomIcon, PalmLogo, SaveIcon, EditIcon, TrashIcon, CopyIcon, HomeIcon, UserIcon, UsersIcon, LockIcon, UtensilsIcon, MeetingIcon, SITCLogo } from './Icons';
+import { getGlobalSettings, saveGlobalSettings, getUsers, createSubUser, createCompanyAdmin, deleteUser, validatePassword, changePassword, updateUser, getCompanies, saveCompany, updateCompany, deleteCompany, adminResetUserPassword, validatePhone } from './authService';
 
 // --- Defaults & Init ---
 
