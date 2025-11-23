@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ProposalPDF } from './components/ProposalPDF';
+import { ProposalPDF } from './components/ProposalPDF.tsx';
 import { AuthScreen } from './components/AuthComponents';
 import { FormInput, FormSelect, FormCheckbox, FileUploader, SectionHeader, Button, DateRangePicker } from './components/InputComponents';
 import { ProposalData, HotelDetails, FlightDetails, FlightClass, TransportationDetails, VehicleType, CustomItem, ActivityDetails, Inclusions, CategoryMarkups, MarkupType, FlightLeg, User, UserRole, ProposalHistory, MarkupConfig, RoomType, HotelImage, ImageTag, MeetingDetails, DiningDetails, FlightQuote, Company } from './types';
