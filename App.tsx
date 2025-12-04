@@ -980,6 +980,7 @@ const App: React.FC = () => {
         </div>
     );
 
+<<<<<<< HEAD
     const addFlight = () => {
         // FIX: Deep copy arrays to prevent reference sharing between flight options
         const newFlight: FlightDetails = {
@@ -994,6 +995,9 @@ const App: React.FC = () => {
         };
         setFormData({ ...formData, flightOptions: [...formData.flightOptions, newFlight] });
     };
+=======
+    const addFlight = () => { setFormData({ ...formData, flightOptions: [...formData.flightOptions, { ...initialFlight, id: Date.now().toString() }] }); };
+>>>>>>> b870ebc28be0c3b737721a51d4708bfa245f5e8e
     const removeFlight = (index: number) => { const f = [...formData.flightOptions]; f.splice(index, 1); setFormData({ ...formData, flightOptions: f }); };
     const updateFlight = (index: number, field: keyof FlightDetails, value: any) => { const f = [...formData.flightOptions]; f[index] = { ...f[index], [field]: value }; setFormData({ ...formData, flightOptions: f }); };
     const addFlightLeg = (flightIndex: number, legType: 'outbound' | 'return') => { const f = [...formData.flightOptions]; f[flightIndex][legType].push({ ...initialFlightLeg }); setFormData({ ...formData, flightOptions: f }); };
