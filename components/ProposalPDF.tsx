@@ -58,97 +58,50 @@ const calculateFlightTotal = (quotes: FlightQuote[], markup: MarkupConfig, vatRu
 // --- Components ---
 
 const CoverPage: React.FC<{ data: ProposalData }> = ({ data }) => (
-    <div className="w-full min-h-screen flex bg-white page-break relative overflow-hidden print:flex">
-        {/* Left Content Section (70%) */}
-        <div className="w-[70%] p-16 flex flex-col justify-center relative">
-            {/* Logo Top Left */}
-            <div className="absolute top-16 left-16">
-                {data.branding.companyLogo ? (
-                    <img src={data.branding.companyLogo} className="h-32 object-contain" alt="Company Logo" />
-                ) : (
-                    <div className="h-24 w-24 bg-gray-200 flex items-center justify-center text-gray-400 text-xs">No Logo</div>
-                )}
-            </div>
+    <div className="w-full h-screen flex bg-white page-break relative overflow-hidden print:flex print:h-screen print:overflow-hidden">
+        {/* Left Content Section (60%) */}
+        <div className="w-[60%] pl-24 pr-12 flex flex-col justify-center relative z-10">
+            <div className="mb-12">
+                <h1 className="text-4xl font-bold text-corporate-blue mb-4 leading-tight">
+                    {data.customerName}
+                </h1>
+                <div className="text-xl text-gray-500 font-medium flex items-center gap-2">
+                    <span className="w-8 h-0.5 bg-corporate-gold inline-block"></span>
+                    {(() => {
+                        let start = '';
+                        let end = '';
 
-            <div className="mt-32">
-                <div className="border-2 border-red-500 p-4 inline-block mb-12">
-                    <h2 className="text-xl font-bold text-corporate-blue uppercase tracking-wide">
-                        {data.customerName} <span className="mx-2 text-gray-400">|</span>
-                        <span className="text-gray-600">
-                            {data.flightOptions.length > 0 && data.flightOptions[0].outbound[0]?.departureDate ?
-                                `${new Date(data.flightOptions[0].outbound[0].departureDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : ''}
-                            {data.flightOptions.length > 0 && data.flightOptions[0].return[0]?.departureDate ?
-                                `-${new Date(data.flightOptions[0].return[0].departureDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}
-                        </span>
-                    </h2>
+                        if (data.flightOptions.length > 0) {
+                            start = data.flightOptions[0].outbound[0]?.departureDate;
+                            end = data.flightOptions[0].return[0]?.departureDate;
+                        } else if (data.hotelOptions.length > 0) {
+                            start = data.hotelOptions[0].roomTypes[0]?.checkIn;
+                            end = data.hotelOptions[0].roomTypes[0]?.checkOut;
+                        }
+
+                        if (start && end) {
+                            const s = new Date(start);
+                            const e = new Date(end);
+                            return `${s.getDate()}th - ${e.getDate()}th ${s.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+                        }
+                        return new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                    })()}
                 </div>
             </div>
         </div>
 
-        {/* Right Blue Patterned Section (30%) */}
-        <div className="w-[30%] bg-[#fdfbf7] relative overflow-hidden flex flex-col justify-center items-center p-8">
-            <div className="text-center">
-                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/9/9e/Flag_of_Saudi_Arabia.svg/1200px-Flag_of_Saudi_Arabia.svg.png" className="h-24 w-auto mx-auto mb-4 opacity-0" alt="" /> {/* Placeholder for the palm tree logo if needed, using opacity 0 to keep layout or remove */}
-                <div className="flex flex-col items-center">
-                    {/* We need the specific gold palm logo here. Since I don't have the asset, I will use the PalmLogo component or the uploaded image if available. 
-                        The user said "Logo: Use the logo saved in the public folder." 
-                        I will assume the companyLogo passed in data is correct, but the screenshot shows a specific layout.
-                        Screenshot 1 shows the logo on the RIGHT side in the beige area.
-                        Wait, the user request says: "Logo: Insert logo from public folder." and "Client Name: Replace Amman Group...".
-                        Screenshot 1:
-                        Left side: White background. Box with "Amman Group | 14th-17th October 2025".
-                        Right side: Beige background. Large Logo.
-                    */}
+        {/* Right Blue Section (40%) with Angled Edge */}
+        <div className="absolute top-0 right-0 w-[45%] h-full bg-corporate-blue transform -skew-x-12 origin-top-right translate-x-20 overflow-hidden flex items-center justify-center">
+            {/* Un-skew the content */}
+            <div className="transform skew-x-12 flex flex-col items-center justify-center h-full pr-20">
+                <img src="/assets/sitc_logo.png" className="w-64 object-contain brightness-0 invert" alt="SITC Logo" />
+                <div className="text-white text-center mt-6">
+                    <div className="font-bold text-2xl tracking-wider mb-1">SITC</div>
+                    <div className="text-sm opacity-80 tracking-widest uppercase">Saudi International Travel Company</div>
                 </div>
             </div>
-            {/* Re-implementing based on Screenshot 1 description accurately */}
-        </div>
-
-        {/* Corrected Layout based on Screenshot 1 Analysis */}
-        <div className="absolute inset-0 flex">
-            <div className="w-[60%] bg-white flex flex-col justify-center pl-24">
-                <div className="border border-red-500 p-6 inline-block max-w-xl">
-                    <h1 className="text-2xl font-bold text-corporate-blue flex items-center gap-4">
-                        {data.customerName}
-                        <span className="text-gray-300 font-light">|</span>
-                        <span className="text-corporate-blue">
-                            {/* Date Range Logic */}
-                            {(() => {
-                                const dates: string[] = [];
-                                // Try to find earliest start and latest end
-                                let start = '';
-                                let end = '';
-
-                                if (data.flightOptions.length > 0) {
-                                    start = data.flightOptions[0].outbound[0]?.departureDate;
-                                    end = data.flightOptions[0].return[0]?.departureDate; // Return date usually
-                                } else if (data.hotelOptions.length > 0) {
-                                    start = data.hotelOptions[0].roomTypes[0]?.checkIn;
-                                    end = data.hotelOptions[0].roomTypes[0]?.checkOut;
-                                }
-
-                                if (start && end) {
-                                    const s = new Date(start);
-                                    const e = new Date(end);
-                                    return `${s.getDate()}th-${e.getDate()}th ${s.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
-                                }
-                                return new Date().toLocaleDateString();
-                            })()}
-                        </span>
-                    </h1>
-                </div>
-            </div>
-            <div className="w-[40%] bg-[#fdfbf7] flex items-center justify-center">
-                {/* Logo from public folder - Assuming it's the one in data.branding.companyLogo or a specific one */}
-                {data.branding.companyLogo ? (
-                    <img src={data.branding.companyLogo} className="w-64 object-contain" alt="SITC Logo" />
-                ) : (
-                    <div className="text-center">
-                        <PalmLogo className="w-32 h-32 text-corporate-gold mx-auto mb-4" />
-                        <div className="text-corporate-blue font-bold text-xl">Saudi International Travel Company</div>
-                    </div>
-                )}
-            </div>
+            {/* Pattern Overlay */}
+            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 20px, #fff 20px, #fff 21px)' }}></div>
         </div>
     </div>
 );
@@ -189,7 +142,7 @@ const TermsPage: React.FC = () => (
 
 const HotelVisualsPage: React.FC<{ hotel: HotelDetails, index: number }> = ({ hotel, index }) => (
     <div className="w-full min-h-screen bg-white page-break p-16 flex flex-col">
-        <div className="border-2 border-red-500 p-4 inline-block mb-8">
+        <div className=" p-4 inline-block mb-8">
             <h2 className="text-3xl font-bold text-corporate-blue uppercase tracking-tight">
                 {hotel.name}
             </h2>
@@ -242,7 +195,7 @@ const HotelDetailsPage: React.FC<{ hotel: HotelDetails, index: number, pricing: 
 
             <h3 className="text-xl font-bold text-corporate-gold mb-6">Grand Total - Option {index + 1}</h3>
 
-            <div className="border-2 border-red-500 p-2">
+            <div className=" p-2">
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="bg-corporate-blue text-white">
@@ -289,7 +242,7 @@ const FlightPage: React.FC<{ flight: FlightDetails, index: number, pricing: any 
 
             <h3 className="text-xl font-bold text-corporate-gold mb-6">Grand Total - Option {index + 1}</h3>
 
-            <div className="border-2 border-red-500 p-6">
+            <div className=" p-6">
                 <div className="border-l-4 border-corporate-gold pl-4 mb-6">
                     <h4 className="font-bold text-corporate-blue text-lg">{flight.routeDescription || 'Flight Route'}</h4>
                 </div>
@@ -373,10 +326,10 @@ const TransportationPage: React.FC<{ data: ProposalData }> = ({ data }) => (
                 const res = calculatePriceBreakdown(t.netPricePerDay, data.pricing.markups.transportation, t.vatRule, data.pricing.vatPercent, t.quantity, t.days);
                 return (
                     <div key={i} className="flex gap-8 items-start">
-                        <div className="w-1/2 border-2 border-red-500 p-2">
+                        <div className="w-1/2  p-2">
                             {t.image ? <img src={t.image} className="w-full h-64 object-cover" /> : <div className="w-full h-64 bg-gray-100 flex items-center justify-center text-gray-400">Vehicle Image</div>}
                         </div>
-                        <div className="w-1/2 border-2 border-red-500 p-6 flex flex-col justify-center h-full min-h-[250px]">
+                        <div className="w-1/2  p-6 flex flex-col justify-center h-full min-h-[250px]">
                             <h3 className="text-xl font-bold text-corporate-blue mb-2">{t.model}</h3>
                             <p className="text-gray-500 text-sm mb-6">{t.type} • {t.description}</p>
 
@@ -397,7 +350,7 @@ const AdditionalServicesPage: React.FC<{ data: ProposalData }> = ({ data }) => (
         <h2 className="text-3xl font-bold text-corporate-blue uppercase mb-8">Additional Services</h2>
         <div className="w-full h-0.5 bg-corporate-gold mb-12"></div>
 
-        <div className="border-2 border-red-500 p-6">
+        <div className=" p-6">
             {data.customItems.map((item, i) => {
                 const res = calculatePriceBreakdown(item.unitPrice, data.pricing.markups.customItems, item.vatRule, data.pricing.vatPercent, item.quantity, item.days);
                 return (
@@ -442,7 +395,7 @@ const InvestmentSummaryPage: React.FC<{ title: string, rows: any[], total: numbe
 
         <h3 className="text-xl font-bold text-corporate-gold mb-6">{title}</h3>
 
-        <div className="border-2 border-red-500 p-2">
+        <div className=" p-2">
             <table className="w-full text-sm">
                 <thead>
                     <tr className="bg-corporate-blue text-white">
@@ -492,7 +445,7 @@ const FlightSummaryPage: React.FC<{ title: string, flight: FlightDetails, pricin
 
             <h3 className="text-xl font-bold text-corporate-gold mb-6">{title}</h3>
 
-            <div className="border-2 border-red-500 p-6">
+            <div className=" p-6">
                 <div className="bg-[#f8fafc] p-6 rounded-lg">
                     <h5 className="text-gray-400 text-xs font-bold uppercase mb-4 tracking-wider">TOTAL COST ESTIMATE</h5>
                     {flight.quotes.map((q, i) => {
@@ -516,7 +469,7 @@ const FlightSummaryPage: React.FC<{ title: string, flight: FlightDetails, pricin
 
 
 const ClosingPage: React.FC<{ data: ProposalData }> = ({ data }) => (
-    <div className="w-full min-h-screen bg-corporate-blue page-break relative flex flex-col items-center justify-center text-white overflow-hidden">
+    <div className="w-full min-h-screen bg-corporate-blue relative flex flex-col items-center justify-center text-white overflow-hidden">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 20px, #fff 20px, #fff 21px)' }}></div>
 
         <div className="relative z-10 text-center">
@@ -527,7 +480,7 @@ const ClosingPage: React.FC<{ data: ProposalData }> = ({ data }) => (
 
             <div className="w-16 h-1 bg-corporate-gold mx-auto mb-8"></div>
 
-            <div className="border-2 border-red-500 p-6 inline-block bg-corporate-blue/50 backdrop-blur-sm">
+            <div className="p-6 inline-block bg-corporate-blue/50 backdrop-blur-sm">
                 <div className="font-bold text-xl">{data.branding.contactName}</div>
                 <div className="opacity-80">{data.branding.contactEmail}</div>
                 <div className="opacity-80 mt-2">www.sitc.com.sa</div>
