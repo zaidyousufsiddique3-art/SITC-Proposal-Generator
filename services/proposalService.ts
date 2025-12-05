@@ -66,19 +66,29 @@ const sanitizeData = (data: any): any => {
     return data;
 };
 
+import { autoMigrateBeforeSave } from './imageMigration';
+
 export const saveProposal = async (proposal: ProposalData) => {
     console.log("saveProposal called with ID:", proposal.id);
-    const sanitizedProposal = sanitizeData({ ...proposal, isDraft: false });
+
+    // Auto-migrate base64 images to Firebase Storage
+    const migratedProposal = await autoMigrateBeforeSave(proposal);
+
+    const sanitizedProposal = sanitizeData({ ...migratedProposal, isDraft: false });
     console.log("Sanitized proposal:", sanitizedProposal);
-    await setDoc(doc(db, "proposals", proposal.id), sanitizedProposal);
+    await setDoc(doc(db, "proposals", migratedProposal.id), sanitizedProposal);
     console.log("setDoc completed for proposal");
 };
 
 export const saveDraft = async (proposal: ProposalData) => {
     console.log("saveDraft called with ID:", proposal.id);
-    const sanitizedProposal = sanitizeData({ ...proposal, isDraft: true });
+
+    // Auto-migrate base64 images to Firebase Storage
+    const migratedProposal = await autoMigrateBeforeSave(proposal);
+
+    const sanitizedProposal = sanitizeData({ ...migratedProposal, isDraft: true });
     console.log("Sanitized draft:", sanitizedProposal);
-    await setDoc(doc(db, "proposals", proposal.id), sanitizedProposal);
+    await setDoc(doc(db, "proposals", migratedProposal.id), sanitizedProposal);
     console.log("setDoc completed for draft");
 };
 

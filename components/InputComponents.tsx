@@ -41,9 +41,9 @@ export const FormSelect: React.FC<SelectProps> = ({ label, options, className, .
 
 export const FormCheckbox: React.FC<{ label: string; checked: boolean; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }> = ({ label, checked, onChange }) => (
   <label className="flex items-center gap-3 p-3 bg-ai-bg/30 border border-gray-600 rounded-lg cursor-pointer hover:bg-ai-bg/50 transition-all mb-4 select-none">
-    <input 
-      type="checkbox" 
-      checked={checked} 
+    <input
+      type="checkbox"
+      checked={checked}
       onChange={onChange}
       className="w-5 h-5 text-ai-accent rounded focus:ring-ai-accent bg-slate-900 border-gray-500"
     />
@@ -52,81 +52,126 @@ export const FormCheckbox: React.FC<{ label: string; checked: boolean; onChange:
 );
 
 interface DateRangePickerProps {
-    label: string;
-    startDate: string;
-    endDate: string;
-    onChange: (start: string, end: string) => void;
-    minDate?: string;
-    className?: string;
+  label: string;
+  startDate: string;
+  endDate: string;
+  onChange: (start: string, end: string) => void;
+  minDate?: string;
+  className?: string;
 }
 
 export const DateRangePicker: React.FC<DateRangePickerProps> = ({ label, startDate, endDate, onChange, minDate, className }) => {
-    return (
-        <div className={`flex flex-col gap-1 mb-4 w-full ${className}`}>
-            <label className="text-xs uppercase tracking-wider font-bold text-ai-accent mb-1">{label}</label>
-            <div className="flex items-center gap-2 bg-ai-bg/50 border border-gray-600 rounded-lg p-2 focus-within:ring-2 focus-within:ring-ai-accent transition-all">
-                <input
-                    type="date"
-                    value={startDate}
-                    min={minDate}
-                    onChange={(e) => onChange(e.target.value, endDate)}
-                    className="bg-transparent text-ai-text w-full focus:outline-none"
-                    placeholder="From"
-                />
-                <span className="text-gray-400 font-bold">→</span>
-                <input
-                    type="date"
-                    value={endDate}
-                    min={startDate}
-                    onChange={(e) => onChange(startDate, e.target.value)}
-                    className="bg-transparent text-ai-text w-full focus:outline-none"
-                    placeholder="To"
-                />
-            </div>
-        </div>
-    );
+  return (
+    <div className={`flex flex-col gap-1 mb-4 w-full ${className}`}>
+      <label className="text-xs uppercase tracking-wider font-bold text-ai-accent mb-1">{label}</label>
+      <div className="flex items-center gap-2 bg-ai-bg/50 border border-gray-600 rounded-lg p-2 focus-within:ring-2 focus-within:ring-ai-accent transition-all">
+        <input
+          type="date"
+          value={startDate}
+          min={minDate}
+          onChange={(e) => onChange(e.target.value, endDate)}
+          className="bg-transparent text-ai-text w-full focus:outline-none"
+          placeholder="From"
+        />
+        <span className="text-gray-400 font-bold">→</span>
+        <input
+          type="date"
+          value={endDate}
+          min={startDate}
+          onChange={(e) => onChange(startDate, e.target.value)}
+          className="bg-transparent text-ai-text w-full focus:outline-none"
+          placeholder="To"
+        />
+      </div>
+    </div>
+  );
 };
 
 interface FileUploaderProps {
   label: string;
-  onFileSelect: (base64: string) => void;
+  onFileSelect: (url: string) => void;
   currentImage?: string;
+  storagePath?: string; // Optional: specific storage path
+  proposalId?: string; // For generating storage path
+  category?: string; // For generating storage path (e.g., 'branding', 'hotel', 'transport')
 }
 
-export const FileUploader: React.FC<FileUploaderProps> = ({ label, onFileSelect, currentImage }) => {
+export const FileUploader: React.FC<FileUploaderProps> = ({
+  label,
+  onFileSelect,
+  currentImage,
+  storagePath,
+  proposalId,
+  category = 'images'
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    setUploading(true);
+    setError(null);
+
+    try {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        onFileSelect(reader.result as string);
+      reader.onloadend = async () => {
+        try {
+          const base64 = reader.result as string;
+
+          // If proposalId is provided, upload to Firebase Storage
+          if (proposalId) {
+            const { uploadImageToStorage, generateImagePath } = await import('../services/imageService');
+            const path = storagePath || generateImagePath(proposalId, category, file.name);
+            const url = await uploadImageToStorage(base64, path);
+            onFileSelect(url);
+          } else {
+            // Fallback: return base64 (for backward compatibility)
+            onFileSelect(base64);
+          }
+          setUploading(false);
+        } catch (err) {
+          console.error('Error uploading image:', err);
+          setError('Failed to upload image');
+          setUploading(false);
+        }
       };
       reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Error reading file:', err);
+      setError('Failed to read file');
+      setUploading(false);
     }
   };
 
   return (
     <div className="flex flex-col gap-1 mb-4 w-full">
       <label className="text-xs uppercase tracking-wider font-bold text-ai-accent mb-1">{label}</label>
-      <div 
-        className="border-2 border-dashed border-gray-600 rounded-lg p-4 hover:bg-gray-700/30 transition-colors cursor-pointer flex items-center justify-center gap-3"
+      <div
+        className={`border-2 border-dashed border-gray-600 rounded-lg p-4 hover:bg-gray-700/30 transition-colors cursor-pointer flex items-center justify-center gap-3 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
         onClick={() => inputRef.current?.click()}
       >
-        <input 
-          type="file" 
-          ref={inputRef} 
-          className="hidden" 
-          accept="image/*" 
-          onChange={handleFile} 
+        <input
+          type="file"
+          ref={inputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleFile}
+          disabled={uploading}
         />
-        {currentImage ? (
+        {uploading ? (
+          <div className="flex flex-col items-center text-gray-400">
+            <div className="animate-spin h-8 w-8 border-4 border-ai-accent border-t-transparent rounded-full"></div>
+            <span className="text-xs mt-2">Uploading...</span>
+          </div>
+        ) : currentImage ? (
           <div className="relative w-full h-20 group">
-             <img src={currentImage} alt="Uploaded" className="w-full h-full object-contain rounded" />
-             <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs">
-               Change Image
-             </div>
+            <img src={currentImage} alt="Uploaded" className="w-full h-full object-contain rounded" />
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs">
+              Change Image
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center text-gray-400">
@@ -135,6 +180,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({ label, onFileSelect,
           </div>
         )}
       </div>
+      {error && <span className="text-xs text-red-400">{error}</span>}
     </div>
   );
 };
@@ -155,7 +201,7 @@ export const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { 
     secondary: "bg-ai-card border border-gray-600 text-ai-muted hover:bg-gray-700 hover:text-white",
     danger: "bg-red-500/10 border border-red-500/50 text-red-400 hover:bg-red-500/20"
   };
-  
+
   return (
     <button className={`${baseStyle} ${variants[variant]} ${className}`} {...props}>
       {children}
