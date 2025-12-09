@@ -3,10 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { ProposalPDF } from './components/ProposalPDF';
 import { AuthScreen } from './components/AuthComponents';
 import { FormInput, FormSelect, FormCheckbox, FileUploader, SectionHeader, Button, DateRangePicker } from './components/InputComponents';
-import { ProposalData, HotelDetails, FlightDetails, FlightClass, TransportationDetails, VehicleType, CustomItem, ActivityDetails, Inclusions, CategoryMarkups, MarkupType, FlightLeg, User, UserRole, ProposalHistory, MarkupConfig, RoomType, HotelImage, ImageTag, MeetingDetails, DiningDetails, FlightQuote, Company } from './types';
+import { ProposalData, HotelDetails, FlightDetails, FlightClass, TransportationDetails, VehicleType, CustomItem, ActivityDetails, Inclusions, CategoryMarkups, MarkupType, FlightLeg, User, UserRole, ProposalHistory, ProposalVersion, MarkupConfig, RoomType, HotelImage, ImageTag, MeetingDetails, DiningDetails, FlightQuote, Company } from './types';
 import { BedIcon, PlaneIcon, BusIcon, ActivityIcon, CustomIcon, PalmLogo, SaveIcon, EditIcon, TrashIcon, CopyIcon, HomeIcon, UserIcon, UsersIcon, LockIcon, UtensilsIcon, MeetingIcon, SITCLogo } from './components/Icons';
 import { getGlobalSettings, saveGlobalSettings, getUsers, createSubUserWithAuth, createCompanyAdminWithAuth, deleteUserProfile, validatePassword, changePassword, updateUserProfile, getCompanies, saveCompany, updateCompany, deleteCompany, adminResetUserPassword, validatePhone, logoutUser } from './services/authService';
 import { getProposals, saveProposal, deleteProposal, saveDraft, autoSaveDraft } from './services/proposalService';
+import { uploadImageToStorage, generateImagePath, isBase64Image } from './services/imageService';
 import SITCLogoImg from './src/assets/logo.png'; // Adjust path if needed. App.tsx is in root, src is in root.
 
 // --- Defaults & Init ---
@@ -374,18 +375,20 @@ const App: React.FC = () => {
             showNotification("Creating proposal... (will be available in a few seconds)", 'info');
         }
 
-        let currentVersions = [...formData.versions];
-        const existing = savedProposals.find(p => p.id === formData.id);
-
-        if (existing) {
-            const snapshot = JSON.stringify(existing);
-            currentVersions.push({
-                timestamp: Date.now(),
-                savedBy: user.email,
-                data: snapshot
-            });
-            if (currentVersions.length > 10) currentVersions.shift();
-        }
+        // DISABLED: Version snapshots can cause Firestore size limit errors (1MB max)
+        // Storing full proposal snapshots with images/data can quickly exceed this limit
+        // TODO: Move version history to a separate Firestore collection or Firebase Storage
+        let currentVersions: ProposalVersion[] = [];
+        // const existing = savedProposals.find(p => p.id === formData.id);
+        // if (existing) {
+        //     const snapshot = JSON.stringify(existing);
+        //     currentVersions.push({
+        //         timestamp: Date.now(),
+        //         savedBy: user.email,
+        //         data: snapshot
+        //     });
+        //     if (currentVersions.length > 10) currentVersions.shift();
+        // }
 
         const historyEntry: ProposalHistory = {
             timestamp: Date.now(),
@@ -452,11 +455,19 @@ const App: React.FC = () => {
             return;
         }
         try {
+            let logoUrl = newCompany.logo || '';
+            if (logoUrl && isBase64Image(logoUrl)) {
+                logoUrl = await uploadImageToStorage(
+                    logoUrl,
+                    generateImagePath(`company_${Date.now()}`, 'branding', 'logo.png')
+                );
+            }
+
             const company: Company = {
                 id: `comp_${Date.now()}`,
                 name: newCompany.name!,
                 domain: newCompany.domain!,
-                logo: newCompany.logo || '',
+                logo: logoUrl,
                 created: Date.now()
             };
             await saveCompany(company);
@@ -471,7 +482,16 @@ const App: React.FC = () => {
     const handleUpdateCompany = async () => {
         if (!editingCompany) return;
         try {
-            await updateCompany(editingCompany.id, editingCompany);
+            let logoUrl = editingCompany.logo;
+            if (logoUrl && isBase64Image(logoUrl)) {
+                logoUrl = await uploadImageToStorage(
+                    logoUrl,
+                    generateImagePath(editingCompany.id, 'branding', 'logo.png')
+                );
+            }
+
+            const updatedCompany = { ...editingCompany, logo: logoUrl };
+            await updateCompany(updatedCompany.id, updatedCompany);
             setEditingCompany(null);
             await refreshData();
             showNotification("Company updated successfully.");
